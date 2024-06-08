@@ -1,5 +1,6 @@
 // CE412_Project2.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+// Bilge ÞEKER              20191701007
+// Ferihan HACIALÝOÐLU      20191701043
 
 using namespace std;
 
