@@ -1,6 +1,6 @@
 // CE412_Project2.cpp : This file contains the 'main' function. Program execution begins and ends there.
-// Bilge ﬁEKER              20191701007
-// Ferihan HACIAL›O–LU      20191701043
+// Bilge √ûEKER              20191701007
+// Ferihan HACIAL√ùO√êLU      20191701043
 
 using namespace std;
 
@@ -11,6 +11,8 @@ using namespace std;
 #include <chrono>
 #include <functional>
 #include <string>
+
+using namespace std;
 
 // Define materials and products
 class Material {
@@ -113,6 +115,41 @@ public:
         return eventQueue.isEmpty();
     }
 };
+//User Input
+class UserInput {
+private:
+    static UserInput* instance;
+    int machineCount;
+    int shiftTiming;
+
+    UserInput() : machineCount(6), shiftTiming(8) {}
+
+public:
+    static UserInput* getInstance() {
+        if (!instance) {
+            instance = new UserInput();
+        }
+        return instance;
+    }
+
+    int getMachineCount() const {
+        return machineCount;
+    }
+
+    void setMachineCount(int count) {
+        machineCount = count;
+    }
+
+    int getShiftTiming() const {
+        return shiftTiming;
+    }
+
+    void setShiftTiming(int timing) {
+        shiftTiming = timing;
+    }
+};
+
+UserInput* UserInput::instance = nullptr;
 
 // Simulation Data
 class SimulationData {
@@ -126,6 +163,19 @@ public:
         return 0.0;
     }
 
+    static double getAdjustedOperationTime(const string& operation) {
+    int machineCount = UserInput::getInstance()->getMachineCount();
+    int shiftTiming = UserInput::getInstance()->getShiftTiming();
+
+    double baseOperationTime = getOperationTime(operation);
+
+    // Adjust based on machine count and shift timing
+    double adjustedOperationTime = baseOperationTime / static_cast<double>(machineCount * shiftTiming);
+
+    return adjustedOperationTime;
+}
+
+
     static double getFailureRate(const string& machine) {
         if (machine == "Machine1") return 0.05;
         if (machine == "Machine2") return 0.1;
@@ -133,13 +183,14 @@ public:
     }
 
     static int getShiftLength() {
-        return 8;
+        return 8; // Default shift length
     }
 
     static int getWorkersPerShift() {
-        return 5;
+        return 5; // Default workers per shift
     }
 };
+
 
 // System Modeling: Production Stages
 class ProductionStage {
@@ -208,13 +259,15 @@ public:
                 simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
-                    });
+                });
                 machine->use();
                 return;
             }
         }
 
-        this_thread::sleep_for(chrono::seconds(static_cast<int>(SimulationData::getOperationTime("RawMaterialHandling"))));
+        // Adjust operation time based on user input
+        double operationTime = SimulationData::getAdjustedOperationTime("RawMaterialHandling");
+        this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
         endTime = simulationClock.getCurrentTime();
     }
 
@@ -222,6 +275,7 @@ public:
         return SimulationData::getOperationTime("RawMaterialHandling");
     }
 };
+
 
 class Machining : public ProductionStage {
 public:
@@ -239,13 +293,15 @@ public:
                 simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
-                    });
+                });
                 machine->use();
                 return;
             }
         }
 
-        this_thread::sleep_for(chrono::seconds(static_cast<int>(SimulationData::getOperationTime("Machining"))));
+        // Adjust operation time based on user input
+        double operationTime = SimulationData::getAdjustedOperationTime("Machining");
+        this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
         endTime = simulationClock.getCurrentTime();
     }
 
@@ -270,13 +326,15 @@ public:
                 simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
-                    });
+                });
                 machine->use();
                 return;
             }
         }
 
-        this_thread::sleep_for(chrono::seconds(static_cast<int>(SimulationData::getOperationTime("Assembling"))));
+        // Adjust operation time based on user input
+        double operationTime = SimulationData::getAdjustedOperationTime("Assembling");
+        this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
         endTime = simulationClock.getCurrentTime();
     }
 
@@ -284,6 +342,7 @@ public:
         return SimulationData::getOperationTime("Assembling");
     }
 };
+
 
 class Inspecting : public ProductionStage {
 public:
@@ -301,13 +360,15 @@ public:
                 simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
-                    });
+                });
                 machine->use();
                 return;
             }
         }
 
-        this_thread::sleep_for(chrono::seconds(static_cast<int>(SimulationData::getOperationTime("Inspecting"))));
+        // Adjust operation time based on user input
+        double operationTime = SimulationData::getAdjustedOperationTime("Inspecting");
+        this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
         endTime = simulationClock.getCurrentTime();
     }
 
@@ -315,6 +376,7 @@ public:
         return SimulationData::getOperationTime("Inspecting");
     }
 };
+
 
 class Packaging : public ProductionStage {
 public:
@@ -332,13 +394,15 @@ public:
                 simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
-                    });
+                });
                 machine->use();
                 return;
             }
         }
 
-        this_thread::sleep_for(chrono::seconds(static_cast<int>(SimulationData::getOperationTime("Packaging"))));
+        // Adjust operation time based on user input
+        double operationTime = SimulationData::getAdjustedOperationTime("Packaging");
+        this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
         endTime = simulationClock.getCurrentTime();
     }
 
@@ -347,41 +411,6 @@ public:
     }
 };
 
-// User input
-class UserInput {
-private:
-    static UserInput* instance;
-    int machineCount;
-    int shiftTiming;
-
-    UserInput() : machineCount(8), shiftTiming(6) {}
-
-public:
-    static UserInput* getInstance() {
-        if (!instance) {
-            instance = new UserInput();
-        }
-        return instance;
-    }
-
-    int getMachineCount() const {
-        return machineCount;
-    }
-
-    void setMachineCount(int count) {
-        machineCount = count;
-    }
-
-    int getShiftTiming() const {
-        return shiftTiming;
-    }
-
-    void setShiftTiming(int timing) {
-        shiftTiming = timing;
-    }
-};
-
-UserInput* UserInput::instance = nullptr;
 
 // Product Type
 class ProductType {
@@ -463,19 +492,20 @@ public:
     }
 
     void showOperationTimes() {
-        double totalProcessingTime = 0.0;
+    double totalProcessingTime = 0.0;
 
-        for (auto stage : stages) {
-            double operationTime = stage->getOperationTime();
-            cout << stage->getName() << " Time: " << operationTime << endl;
-            totalProcessingTime += operationTime;
-        }
-
-        double totalIdleTime = simulationClock.getCurrentTime() - totalProcessingTime;
-
-        cout << "Total Processing Time: " << totalProcessingTime << endl;
-        cout << "Total Idle Time: " << totalIdleTime << endl;
+    for (auto stage : stages) {
+        double operationTime = SimulationData::getAdjustedOperationTime(stage->getName());
+        cout << stage->getName() << " Time: " << operationTime << endl;
+        totalProcessingTime += operationTime;
     }
+
+    double totalIdleTime = simulationClock.getCurrentTime() - totalProcessingTime;
+
+    cout << "Total Processing Time: " << totalProcessingTime << endl;
+    cout << "Total Idle Time: " << totalIdleTime << endl;
+}
+
 };
 
 // Experimentation and Analysis
@@ -484,11 +514,13 @@ public:
     void runSingleScenarios(MultiProductManufacturingSystem& system) {
         system.runSingleSimulation();
         system.analyzeBottlenecks();
+        system.showOperationTimes();
     }
 
     void runMultiScenarios(MultiProductManufacturingSystem& system) {
         system.runMultiProductSimulation();
         system.analyzeBottlenecks();
+        system.showOperationTimes();
     }
 
     void adjustVariablesAndObserve(MultiProductManufacturingSystem& system) {
@@ -536,7 +568,8 @@ int main() {
     UserInput::getInstance()->setShiftTiming(shiftTiming);
     experimentation.adjustVariablesAndObserve(system);
 
-    system.showOperationTimes();
 
     return 0;
 }
+
+
