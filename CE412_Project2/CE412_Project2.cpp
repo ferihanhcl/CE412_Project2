@@ -89,19 +89,13 @@ public:
     }
 };
 
-class SimulationClock {
+class SimulationTime {
 private:
     double currentTime;
     EventQueue eventQueue;
 
 public:
-    SimulationClock() : currentTime(0.0) {}
-
-    void advanceToNextEvent() {
-        if (!eventQueue.isEmpty()) {
-            eventQueue.processNextEvent(currentTime);
-        }
-    }
+    SimulationTime() : currentTime(0.0) {}
 
     double getCurrentTime() {
         return currentTime;
@@ -109,10 +103,6 @@ public:
 
     void scheduleEvent(double time, function<void()> action) {
         eventQueue.addEvent(time, action);
-    }
-
-    bool isEmpty() {
-        return eventQueue.isEmpty();
     }
 };
 //User Input
@@ -200,10 +190,10 @@ protected:
     vector<Operator*> operators;
     double startTime;
     double endTime;
-    SimulationClock& simulationClock;
+    SimulationTime& simulationTime;
 
 public:
-    ProductionStage(const string& name, SimulationClock& clock) : name(name), startTime(0.0), endTime(0.0), simulationClock(clock) {}
+    ProductionStage(const string& name, SimulationTime& clock) : name(name), startTime(0.0), endTime(0.0), simulationTime(clock) {}
 
     string getName() const {
         return name;
@@ -245,10 +235,10 @@ public:
 
 class RawMaterialHandling : public ProductionStage {
 public:
-    RawMaterialHandling(const string& name, SimulationClock& clock) : ProductionStage(name, clock) {}
+    RawMaterialHandling(const string& name, SimulationTime& clock) : ProductionStage(name, clock) {}
 
     void process(Material* material) override {
-        startTime = simulationClock.getCurrentTime();
+        startTime = simulationTime.getCurrentTime();
         cout << "Processing raw material: " << material->name << " in " << name << endl;
 
         // Check machine failures
@@ -256,7 +246,7 @@ public:
             if (checkMachineFailure(machine)) {
                 cout << "Machine " << machine->name << " failed during " << name << endl;
                 // Schedule a repair event
-                simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
+                simulationTime.scheduleEvent(simulationTime.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
                 });
@@ -268,7 +258,7 @@ public:
         // Adjust operation time based on user input
         double operationTime = SimulationData::getAdjustedOperationTime("RawMaterialHandling");
         this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
-        endTime = simulationClock.getCurrentTime();
+        endTime = simulationTime.getCurrentTime();
     }
 
     double getOperationTime() const override {
@@ -279,10 +269,10 @@ public:
 
 class Machining : public ProductionStage {
 public:
-    Machining(const string& name, SimulationClock& clock) : ProductionStage(name, clock) {}
+    Machining(const string& name, SimulationTime& clock) : ProductionStage(name, clock) {}
 
     void process(Material* material) override {
-        startTime = simulationClock.getCurrentTime();
+        startTime = simulationTime.getCurrentTime();
         cout << "Machining material: " << material->name << " in " << name << endl;
 
         // Check machine failures
@@ -290,7 +280,7 @@ public:
             if (checkMachineFailure(machine)) {
                 cout << "Machine " << machine->name << " failed during " << name << endl;
                 // Schedule a repair event
-                simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
+                simulationTime.scheduleEvent(simulationTime.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
                 });
@@ -302,7 +292,7 @@ public:
         // Adjust operation time based on user input
         double operationTime = SimulationData::getAdjustedOperationTime("Machining");
         this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
-        endTime = simulationClock.getCurrentTime();
+        endTime = simulationTime.getCurrentTime();
     }
 
     double getOperationTime() const override {
@@ -312,10 +302,10 @@ public:
 
 class Assembling : public ProductionStage {
 public:
-    Assembling(const string& name, SimulationClock& clock) : ProductionStage(name, clock) {}
+    Assembling(const string& name, SimulationTime& clock) : ProductionStage(name, clock) {}
 
     void process(Material* material) override {
-        startTime = simulationClock.getCurrentTime();
+        startTime = simulationTime.getCurrentTime();
         cout << "Assembling material: " << material->name << " in " << name << endl;
 
         // Check machine failures
@@ -323,7 +313,7 @@ public:
             if (checkMachineFailure(machine)) {
                 cout << "Machine " << machine->name << " failed during " << name << endl;
                 // Schedule a repair event
-                simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
+                simulationTime.scheduleEvent(simulationTime.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
                 });
@@ -335,7 +325,7 @@ public:
         // Adjust operation time based on user input
         double operationTime = SimulationData::getAdjustedOperationTime("Assembling");
         this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
-        endTime = simulationClock.getCurrentTime();
+        endTime = simulationTime.getCurrentTime();
     }
 
     double getOperationTime() const override {
@@ -346,10 +336,10 @@ public:
 
 class Inspecting : public ProductionStage {
 public:
-    Inspecting(const string& name, SimulationClock& clock) : ProductionStage(name, clock) {}
+    Inspecting(const string& name, SimulationTime& clock) : ProductionStage(name, clock) {}
 
     void process(Material* material) override {
-        startTime = simulationClock.getCurrentTime();
+        startTime = simulationTime.getCurrentTime();
         cout << "Inspecting material: " << material->name << " in " << name << endl;
 
         // Check machine failures
@@ -357,7 +347,7 @@ public:
             if (checkMachineFailure(machine)) {
                 cout << "Machine " << machine->name << " failed during " << name << endl;
                 // Schedule a repair event
-                simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
+                simulationTime.scheduleEvent(simulationTime.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
                 });
@@ -369,7 +359,7 @@ public:
         // Adjust operation time based on user input
         double operationTime = SimulationData::getAdjustedOperationTime("Inspecting");
         this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
-        endTime = simulationClock.getCurrentTime();
+        endTime = simulationTime.getCurrentTime();
     }
 
     double getOperationTime() const override {
@@ -380,10 +370,10 @@ public:
 
 class Packaging : public ProductionStage {
 public:
-    Packaging(const string& name, SimulationClock& clock) : ProductionStage(name, clock) {}
+    Packaging(const string& name, SimulationTime& clock) : ProductionStage(name, clock) {}
 
     void process(Material* material) override {
-        startTime = simulationClock.getCurrentTime();
+        startTime = simulationTime.getCurrentTime();
         cout << "Packaging material: " << material->name << " in " << name << endl;
 
         // Check machine failures
@@ -391,7 +381,7 @@ public:
             if (checkMachineFailure(machine)) {
                 cout << "Machine " << machine->name << " failed during " << name << endl;
                 // Schedule a repair event
-                simulationClock.scheduleEvent(simulationClock.getCurrentTime() + 1.0, [machine]() {
+                simulationTime.scheduleEvent(simulationTime.getCurrentTime() + 1.0, [machine]() {
                     machine->release();
                     cout << "Machine " << machine->name << " repaired." << endl;
                 });
@@ -403,7 +393,7 @@ public:
         // Adjust operation time based on user input
         double operationTime = SimulationData::getAdjustedOperationTime("Packaging");
         this_thread::sleep_for(chrono::seconds(static_cast<int>(operationTime)));
-        endTime = simulationClock.getCurrentTime();
+        endTime = simulationTime.getCurrentTime();
     }
 
     double getOperationTime() const override {
@@ -428,15 +418,15 @@ class MultiProductManufacturingSystem {
 private:
     vector<ProductionStage*> stages;
     vector<ProductType> productTypes;
-    SimulationClock simulationClock;
+    SimulationTime simulationTime;
 
 public:
     MultiProductManufacturingSystem() {
-        stages.push_back(new RawMaterialHandling("Raw Material Handling", simulationClock));
-        stages.push_back(new Machining("Machining", simulationClock));
-        stages.push_back(new Assembling("Assembling", simulationClock));
-        stages.push_back(new Inspecting("Inspecting", simulationClock));
-        stages.push_back(new Packaging("Packaging", simulationClock));
+        stages.push_back(new RawMaterialHandling("Raw Material Handling", simulationTime));
+        stages.push_back(new Machining("Machining", simulationTime));
+        stages.push_back(new Assembling("Assembling", simulationTime));
+        stages.push_back(new Inspecting("Inspecting", simulationTime));
+        stages.push_back(new Packaging("Packaging", simulationTime));
 
         // Create machines and operators
         Machine* machine1 = new Machine("Machine1");
@@ -474,9 +464,9 @@ public:
                 for (auto& stage : stages) {
                     if (stage->getName() == stageName) {
                         Material* material = new Material(productType.name);
-                        stage->setStartTime(simulationClock.getCurrentTime());
+                        stage->setStartTime(simulationTime.getCurrentTime());
                         stage->process(material);
-                        stage->setEndTime(simulationClock.getCurrentTime());
+                        stage->setEndTime(simulationTime.getCurrentTime());
                     }
                 }
             }
@@ -500,7 +490,7 @@ public:
         totalProcessingTime += operationTime;
     }
 
-    double totalIdleTime = simulationClock.getCurrentTime() - totalProcessingTime;
+    double totalIdleTime = simulationTime.getCurrentTime() - totalProcessingTime;
 
     cout << "Total Processing Time: " << totalProcessingTime << endl;
     cout << "Total Idle Time: " << totalIdleTime << endl;
